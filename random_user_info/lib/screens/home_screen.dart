@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:random_user_info/screens/user_details_screen.dart';
 
 class HomeScreen extends StatefulWidget{
   const HomeScreen({super.key});
@@ -16,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen>{
   List<dynamic> users = [];
   bool isLoading = true;
   String? errorMessage;
+  final Set<String> _favorites = {};
 
   @override
   void initState() {
@@ -48,6 +50,16 @@ class _HomeScreenState extends State<HomeScreen>{
     }
   }
 
+  void _toggleFavorite(String uuid){
+    setState(() {
+      if(_favorites.contains(uuid)){
+        _favorites.remove(uuid);
+      }else{
+        _favorites.add(uuid);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,56 +81,68 @@ class _HomeScreenState extends State<HomeScreen>{
                   itemCount: users.length,
                   itemBuilder: (context, index){
                     final user = users[index];
-                    return Card(
-                      elevation: 2,
-                      clipBehavior: Clip.hardEdge,
-                      child: Stack(
-                        children: [
-                          Hero(
-                            tag: user['login']['uuid'],
-                            child: FadeInImage(
-                              placeholder: AssetImage('assets/placeholder2.jpg'),
-                              image: NetworkImage(user['picture']['large']),
-                              fit: BoxFit.cover,
-                              height: 400,
-                              width: double.infinity,
-                            ),
-                          ),
+                    final uuid = user['login']['uuid'];
+                    final isFavorite = _favorites.contains(uuid);
 
-                          Positioned.fill(
-                            child: Image.network(user['picture']['large'], fit: BoxFit.cover,),
-                          ),
-
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('${user['name']['first']} ${user['dob']['age']}', style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                      ),),
-                                      Text('${user['location']['country']}', style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                      ),),
-                                    ],
-                                  ),
-
-                                  Icon(Icons.favorite_border, color: Colors.white,),
-                                ],
+                    return InkWell(
+                      onTap: (){
+                        Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => UserDetailsScreen(user: user, id: uuid,)));
+                      },
+                      child: Card(
+                        elevation: 2,
+                        clipBehavior: Clip.hardEdge,
+                        child: Stack(
+                          children: [
+                            Hero(
+                              tag: uuid,
+                              child: FadeInImage(
+                                placeholder: AssetImage('assets/placeholder2.jpg'),
+                                image: NetworkImage(user['picture']['large']),
+                                fit: BoxFit.cover,
+                                height: 400,
+                                width: double.infinity,
                               ),
                             ),
-                          ),
-                        ],
+                      
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                color: Colors.black38,
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('${user['name']['first']}, ${user['dob']['age']}', style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),),
+                                        Text('${user['location']['country']}', style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                        ),),
+                                      ],
+                                    ),
+                      
+                                    IconButton(
+                                      onPressed: (){
+                                        _toggleFavorite(uuid);
+                                      },
+                                      icon: isFavorite
+                                            ? Icon(Icons.favorite, color: Colors.red,)
+                                            : Icon(Icons.favorite_border, color: Colors.white,),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
