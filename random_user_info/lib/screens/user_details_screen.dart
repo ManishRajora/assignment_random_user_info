@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:random_user_info/screens/home_screen.dart';
 
 class UserDetailsScreen extends StatefulWidget{
   const UserDetailsScreen({super.key, required this.user, required this.id, required this.favorites, required this.onToggle});
